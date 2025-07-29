@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hic_claim_all,hic.claim all,health_insurance_claim.model_hic_claim,,1,1,1,1
+access_hic_claim_medicine_all,hic.claim.medicine all,health_insurance_claim.model_hic_claim_medicine,,1,1,1,1
+access_hic_medicine_all,hic.medicine all,health_insurance_claim.model_hic_medicine,,1,1,1,1
+access_hic_medical_service_all,hic.medical.service all,health_insurance_claim.model_hic_medical_service,,1,1,1,1
+access_hic_medical_supply_all,hic.medical.supply all,health_insurance_claim.model_hic_medical_supply,,1,1,1,1
+access_hic_department_all,hic.department all,health_insurance_claim.model_hic_department,,1,1,1,1

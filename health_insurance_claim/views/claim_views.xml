@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_claim_tree" model="ir.ui.view">
+        <field name="name">hic.claim.tree</field>
+        <field name="model">hic.claim</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'completed'"
+                  decoration-warning="state in ['processing', 'check_in_sent']"
+                  decoration-danger="state == 'cancelled'"
+                  decoration-info="state == 'draft'"
+                  sample="1"
+                  multi_edit="1">
+
+                <field name="visit_id"/>
+                <field name="patient_name"/>
+                <field name="visit_date"/>
+                <field name="state"
+                       decoration-success="state == 'completed'"
+                       decoration-warning="state == 'processing'"
+                       decoration-info="state == 'draft'"/>
+                <field name="checkin_status" optional="hide"/>
+                <field name="claim_status" optional="hide"/>
+                <field name="insurance_number" optional="show"/>
+                <field name="total_insurance_cost" optional="hide"/>
+                <field name="created_from_his" optional="hide"/>
+
+                <!-- Action buttons -->
+                <button name="action_validate" type="object"
+                        icon="fa-check" title="Xác thực"
+                        invisible="state != 'draft'"/>
+                <button name="action_send_checkin" type="object"
+                        icon="fa-paper-plane" title="Gửi Check-in"
+                        invisible="state != 'validated'"/>
+                <button name="action_send_claim" type="object"
+                        icon="fa-upload" title="Gửi Giám định"
+                        invisible="checkin_status != 'sent'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Claim Form View -->
+    <record id="view_claim_form" model="ir.ui.view">
+        <field name="name">hic.claim.form</field>
+        <field name="model">hic.claim</field>
+        <field name="arch" type="xml">
+            <form string="Hồ sơ giám định BHYT">
+                <header>
+                    <button name="action_validate" type="object" string="Xác thực"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_send_checkin" type="object" string="Gửi Check-in"
+                            class="btn-info" invisible="state != 'validated'"/>
+                    <button name="action_send_claim" type="object" string="Gửi Giám định"
+                            class="btn-success" invisible="checkin_status != 'sent'"/>
+                    <button name="action_sync_from_his" type="object" string="Đồng bộ từ HIS"
+                            class="btn-secondary"/>
+                    <button name="action_export_xml" type="object" string="Xuất XML"
+                            class="btn-warning"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,validated,check_in_sent,processing,completed"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_xml_details" type="object"
+                                class="oe_stat_button" icon="fa-code">
+                            <span>Chi tiết XML</span>
+                        </button>
+
+                        <!-- QR Code -->
+                        <field name="qr_image" widget="image" class="oe_avatar"
+                               options="{'size': [90, 90]}"/>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                        <div class="row">
+                            <div class="col-6">
+                                <field name="checkin_status"/>
+                            </div>
+                            <div class="col-6">
+                                <field name="claim_status"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Thông tin cơ bản">
+                            <field name="visit_id" required="1"/>
+                            <field name="patient_id" required="1"
+                                   context="{'default_can_use_bhyt': True}"
+                                   domain="[('can_use_bhyt', '=', True)]"/>
+                            <field name="visit_date" required="1"/>
+                            <field name="created_from_his" readonly="1"/>
+                            <field name="his_sync_date" readonly="1"
+                                   invisible="created_from_his == False"/>
+                        </group>
+                        <group string="Trạng thái xử lý">
+                            <field name="sent_to_bhyt_date" readonly="1"/>
+                            <field name="bhyt_response_date" readonly="1"/>
+                            <field name="notes" placeholder="Ghi chú thêm..."/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Patient Information Tab -->
+                        <page string="Thông tin bệnh nhân" name="patient_info">
+                            <group>
+                                <group string="Thông tin bệnh nhân" name="patient_basic">
+                                    <field name="patient_name" readonly="1"/>
+                                    <field name="patient_dob" readonly="1"/>
+                                    <field name="patient_gender" readonly="1"/>
+                                    <field name="patient_citizen_id" readonly="1"/>
+                                    <field name="patient_phone" readonly="1"/>
+                                </group>
+                                <group string="Thông tin bảo hiểm" name="insurance_info">
+                                    <field name="insurance_number" readonly="1"/>
+                                    <field name="insurance_benefit_code" readonly="1"/>
+                                    <field name="insurance_object" readonly="1"/>
+                                    <field name="insurance_region_code" readonly="1"/>
+                                    <field name="registered_hospital" readonly="1"/>
+                                    <field name="insurance_valid_from" readonly="1"/>
+                                    <field name="insurance_valid_to" readonly="1"/>
+                                    <field name="benefit_percentage" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Quyền lợi đặc biệt" name="special_benefits">
+                                    <field name="rare_disease_code" readonly="1"/>
+                                    <field name="five_year_continuous_date" readonly="1"/>
+                                    <field name="copay_exemption_start" readonly="1"/>
+                                    <field name="copay_exemption_end" readonly="1"/>
+                                </group>
+                                <group string="Thông tin chuyển tuyến" name="transfer_info">
+                                    <field name="transfer_number"/>
+                                    <field name="transfer_from"/>
+                                    <field name="transfer_date"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Medical Information Tab -->
+                        <page string="Thông tin khám chữa bệnh" name="medical_info">
+                            <group>
+                                <group string="Thông tin lượt khám" name="visit_info">
+                                    <field name="admission_date"/>
+                                    <field name="discharge_date"/>
+                                    <field name="treatment_days" readonly="1"/>
+                                    <field name="admission_reason"/>
+                                    <field name="inpatient_reason"/>
+                                    <field name="inpatient_reason_code"/>
+                                </group>
+                                <group string="Chẩn đoán" name="diagnosis">
+                                    <field name="admission_diagnosis"/>
+                                    <field name="discharge_diagnosis"/>
+                                    <field name="primary_disease_code" placeholder="E00"/>
+                                    <field name="secondary_disease_codes" placeholder="E01, E02"/>
+                                    <field name="traditional_medicine_code"/>
+                                    <field name="surgery_code"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Thông tin điều trị" name="treatment_info">
+                                    <field name="kcb_object_code"/>
+                                    <field name="accident_code"/>
+                                    <field name="treatment_method"/>
+                                    <field name="treatment_result"/>
+                                    <field name="discharge_type_code"/>
+                                    <field name="departure_place_code"/>
+                                    <field name="destination_place_code"/>
+                                </group>
+                                <group string="Thông tin bổ sung" name="additional_info">
+                                    <field name="hospital_code"/>
+                                    <field name="department_code"/>
+                                    <field name="region_code"/>
+                                    <field name="weight"/>
+                                    <field name="child_weight"/>
+                                    <field name="follow_up_date"/>
+                                    <field name="medical_record_code"/>
+                                    <field name="service_status_code"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Financial Information Tab -->
+                        <page string="Thông tin thanh toán" name="financial_info">
+                            <group>
+                                <group string="Thông tin quyết toán" name="settlement_info">
+                                    <field name="settlement_year"/>
+                                    <field name="settlement_month"/>
+                                    <field name="payment_datetime"/>
+                                </group>
+                                <group string="Tổng hợp chi phí" name="cost_summary">
+                                    <field name="medicine_cost" widget="monetary"/>
+                                    <field name="medical_supply_cost" widget="monetary"/>
+                                    <field name="other_source_cost" widget="monetary"/>
+                                    <field name="total_hospital_cost" widget="monetary"/>
+                                    <field name="total_insurance_cost" widget="monetary"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Chi phí bệnh nhân" name="patient_cost">
+                                    <field name="patient_payment" widget="monetary"/>
+                                    <field name="patient_copay" widget="monetary"/>
+                                </group>
+                                <group string="Chi phí bảo hiểm" name="insurance_cost">
+                                    <field name="insurance_payment" widget="monetary"/>
+                                    <field name="service_insurance_payment" widget="monetary"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- XML Details Tabs -->
+                        <page string="Thuốc (XML2)" name="medicine_lines">
+                            <field name="medicine_lines">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="medicine_code" required="1"/>
+                                    <field name="medicine_name" required="1"/>
+                                    <field name="unit"/>
+                                    <field name="quantity" required="1"/>
+                                    <field name="unit_price"/>
+                                    <field name="hospital_amount" readonly="1"/>
+                                    <field name="insurance_amount" readonly="1"/>
+                                    <field name="patient_self_pay"/>
+                                    <field name="insurance_payment"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="DVKT &amp; VTYT (XML3)" name="service_lines">
+                            <field name="service_lines">
+                                <list editable="bottom"
+                                      decoration-info="service_type == 'dvkt'"
+                                      decoration-warning="service_type == 'vtyt'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_type" required="1"/>
+                                    <field name="service_code" required="1"/>
+                                    <field name="service_name" required="1"/>
+                                    <field name="quantity" required="1"/>
+                                    <field name="hospital_unit_price"/>
+                                    <field name="insurance_unit_price"/>
+                                    <field name="hospital_amount" readonly="1"/>
+                                    <field name="insurance_amount" readonly="1"/>
+                                    <field name="patient_self_pay"/>
+                                    <field name="insurance_payment"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Dịch vụ lâm sàng (XML4)" name="clinical_lines">
+                            <field name="clinical_lines">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_code" required="1"/>
+                                    <field name="indicator_code"/>
+                                    <field name="indicator_name"/>
+                                    <field name="indicator_value"/>
+                                    <field name="unit_of_measure"/>
+                                    <field name="result_date"/>
+                                    <field name="doctor_code"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- System Information Tab -->
+                        <page string="Thông tin hệ thống" name="system_info"
+                              groups="health_insurance_claim.group_hic_manager">
+                            <group>
+                                <field name="unique_code" readonly="1"/>
+                                <field name="bhyt_response_data" readonly="1" widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Claim Search View -->
+    <record id="view_claim_search" model="ir.ui.view">
+        <field name="name">hic.claim.search</field>
+        <field name="model">hic.claim</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="visit_id" string="Visit ID"/>
+                <field name="patient_name" string="Tên bệnh nhân"/>
+                <field name="insurance_number" string="Số BHYT"/>
+                <field name="primary_disease_code" string="Mã bệnh chính"/>
+
+                <filter string="Nháp" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Đã xác thực" name="validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Đang xử lý" name="processing" domain="[('state', '=', 'processing')]"/>
+                <filter string="Hoàn thành" name="completed" domain="[('state', '=', 'completed')]"/>
+                <separator/>
+                <filter string="Tạo từ HIS" name="from_his" domain="[('created_from_his', '=', True)]"/>
+                <filter string="Tạo thủ công" name="manual" domain="[('created_from_his', '=', False)]"/>
+                <separator/>
+                <filter string="Hôm nay" name="today"
+                        domain="[('visit_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('visit_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="Tuần này" name="this_week"
+                        domain="[('visit_date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d')),
+                                ('visit_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Tháng này" name="this_month"
+                        domain="[('visit_date', '&gt;=', context_today().strftime('%Y-%m-01')),
+                                ('visit_date', '&lt;=', (context_today() + relativedelta(months=1, day=1, days=-1)).strftime('%Y-%m-%d'))]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Trạng thái" name="group_state" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter string="Ngày khám" name="group_visit_date" domain="[]"
+                            context="{'group_by': 'visit_date:day'}"/>
+                    <filter string="Bệnh nhân" name="group_patient" domain="[]" context="{'group_by': 'patient_id'}"/>
+                    <filter string="Tạo từ HIS" name="group_his" domain="[]"
+                            context="{'group_by': 'created_from_his'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Claims -->
+    <record id="action_claim" model="ir.actions.act_window">
+        <field name="name">Hồ sơ giám định BHYT</field>
+        <field name="res_model">hic.claim</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_claim_search"/>
+        <field name="context">{
+            'search_default_this_month': 1,
+            }
+        </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo hồ sơ giám định BHYT đầu tiên
+            </p>
+            <p>
+                Hồ sơ giám định BHYT quản lý toàn bộ quy trình từ check-in đến gửi giám định lên cổng BHYT.
+            </p>
+        </field>
+    </record>
+</odoo>

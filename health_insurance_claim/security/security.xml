@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit from HIS base groups -->
+    <record id="group_hic_user" model="res.groups">
+        <field name="name">HIC User</field>
+        <field name="category_id" ref="his_base.module_category_his"/>
+        <field name="implied_ids" eval="[(4, ref('his_base.group_his_user'))]"/>
+        <field name="comment">Basic HIC user with read access to claims and master data</field>
+    </record>
+
+    <record id="group_hic_receptionist" model="res.groups">
+        <field name="name">HIC Receptionist</field>
+        <field name="category_id" ref="his_base.module_category_his"/>
+        <field name="implied_ids" eval="[(4, ref('group_hic_user')), (4, ref('his.group_his_receptionist'))]"/>
+        <field name="comment">HIC receptionist can create and edit claims</field>
+    </record>
+
+    <record id="group_hic_insurance_staff" model="res.groups">
+        <field name="name">HIC Insurance Staff</field>
+        <field name="category_id" ref="his_base.module_category_his"/>
+        <field name="implied_ids" eval="[(4, ref('group_hic_receptionist'))]"/>
+        <field name="comment">Insurance staff can validate and send claims to BHYT</field>
+    </record>
+
+    <record id="group_hic_manager" model="res.groups">
+        <field name="name">HIC Manager</field>
+        <field name="category_id" ref="his_base.module_category_his"/>
+        <field name="implied_ids"
+               eval="[(4, ref('group_hic_insurance_staff')), (4, ref('his_base.group_his_manager'))]"/>
+        <field name="comment">HIC manager with full access to all HIC features</field>
+    </record>
+
+    <!-- Record Rules -->
+    <record id="rule_claim_user" model="ir.rule">
+        <field name="name">HIC Claim: User Access</field>
+        <field name="model_id" ref="model_hic_claim"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('patient_id.assignee_ids', 'in',
+            [user.partner_id.id])]
+        </field>
+        <field name="groups" eval="[(4, ref('group_hic_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_claim_staff" model="ir.rule">
+        <field name="name">HIC Claim: Staff Access</field>
+        <field name="model_id" ref="model_hic_claim"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_hic_insurance_staff'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_claim_manager" model="ir.rule">
+        <field name="name">HIC Claim: Manager Access</field>
+        <field name="model_id" ref="model_hic_claim"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_hic_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

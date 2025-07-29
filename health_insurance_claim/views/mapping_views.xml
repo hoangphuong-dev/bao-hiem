@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- HIS Data Views -->
+    <record id="view_his_data_tree" model="ir.ui.view">
+        <field name="name">hic.his.data.tree</field>
+        <field name="model">hic.his.data</field>
+        <field name="arch" type="xml">
+            <list sample="1" multi_edit="1"
+                  decoration-success="is_mapped == True"
+                  decoration-warning="is_mapped == False">
+                <field name="his_code"/>
+                <field name="his_name"/>
+                <field name="data_type"/>
+                <field name="his_price" optional="show"/>
+                <field name="his_unit" optional="show"/>
+                <field name="is_mapped" string="Mapped" widget="boolean_toggle"/>
+                <field name="mapped_to" optional="show"/>
+                <field name="last_sync" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+
+                <button name="action_create_mapping" type="object"
+                        icon="fa-link" title="Tạo mapping"
+                        invisible="is_mapped == True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_his_data_form" model="ir.ui.view">
+        <field name="name">hic.his.data.form</field>
+        <field name="model">hic.his.data</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_mapping" type="object" string="Tạo Mapping"
+                            class="btn-primary" invisible="is_mapped == True"/>
+                    <button name="action_sync_single" type="object" string="Đồng bộ"
+                            class="btn-info"/>
+                </header>
+
+                <sheet>
+                    <widget name="web_ribbon" title="Đã mapping" bg_color="text-bg-success"
+                            invisible="is_mapped == False"/>
+                    <widget name="web_ribbon" title="Chưa mapping" bg_color="text-bg-warning"
+                            invisible="is_mapped == True"/>
+
+                    <group>
+                        <group string="Thông tin HIS">
+                            <field name="his_code"/>
+                            <field name="his_name"/>
+                            <field name="data_type"/>
+                            <field name="his_price"/>
+                            <field name="his_unit"/>
+                        </group>
+                        <group string="Trạng thái">
+                            <field name="is_mapped" readonly="1"/>
+                            <field name="mapped_to" readonly="1"/>
+                            <field name="last_sync" readonly="1"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group string="Thông tin bổ sung">
+                        <field name="additional_info" widget="text" placeholder="JSON data từ HIS..."/>
+                    </group>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_his_data_search" model="ir.ui.view">
+        <field name="name">hic.his.data.search</field>
+        <field name="model">hic.his.data</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="his_code"/>
+                <field name="his_name"/>
+                <field name="data_type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Loại dữ liệu" name="group_data_type" domain="[]"
+                            context="{'group_by': 'data_type'}"/>
+                    <filter string="Trạng thái mapping" name="group_mapped" domain="[]"
+                            context="{'group_by': 'is_mapped'}"/>
+                    <filter string="Ngày đồng bộ" name="group_sync_date" domain="[]"
+                            context="{'group_by': 'last_sync:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Medicine Mapping Views -->
+    <record id="view_medicine_mapping_tree" model="ir.ui.view">
+        <field name="name">hic.medicine.mapping.tree</field>
+        <field name="model">hic.medicine.mapping</field>
+        <field name="arch" type="xml">
+            <list sample="1" editable="bottom">
+                <field name="bhyt_code" readonly="1"/>
+                <field name="bhyt_name" readonly="1"/>
+                <field name="his_code" readonly="1"/>
+                <field name="his_name" readonly="1"/>
+                <field name="medicine_id" invisible="1"/>
+                <field name="his_data_id" invisible="1"/>
+                <field name="mapping_ratio"/>
+                <field name="notes"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medicine_mapping_form" model="ir.ui.view">
+        <field name="name">hic.medicine.mapping.form</field>
+        <field name="model">hic.medicine.mapping</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="BHYT Medicine">
+                            <field name="medicine_id" required="1"/>
+                            <field name="bhyt_code" related="medicine_id.bhyt_code" readonly="1"/>
+                            <field name="bhyt_name" related="medicine_id.bhyt_name" readonly="1"/>
+                        </group>
+                        <group string="HIS Medicine">
+                            <field name="his_data_id" required="1"
+                                   domain="[('data_type', '=', 'medicine')]"/>
+                            <field name="his_code" related="his_data_id.his_code" readonly="1"/>
+                            <field name="his_name" related="his_data_id.his_name" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Mapping Config">
+                            <field name="mapping_ratio"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1" placeholder="Ghi chú về mapping..."/>
+                        </group>
+                    </group>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Mapping Actions -->
+    <record id="action_his_data" model="ir.actions.act_window">
+        <field name="name">Dữ liệu HIS</field>
+        <field name="res_model">hic.his.data</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_not_mapped': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Đồng bộ dữ liệu từ HIS
+            </p>
+            <p>
+                Dữ liệu từ HIS sẽ được đồng bộ tự động hoặc thủ công để tạo mapping với BHYT.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_medicine_mapping" model="ir.actions.act_window">
+        <field name="name">Mapping Thuốc BHYT-HIS</field>
+        <field name="res_model">hic.medicine.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo mapping thuốc BHYT-HIS
+            </p>
+            <p>
+                Mapping giữa danh mục thuốc BHYT và HIS để tự động ánh xạ dữ liệu.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_service_mapping" model="ir.actions.act_window">
+        <field name="name">Mapping DVKT BHYT-HIS</field>
+        <field name="res_model">hic.service.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo mapping DVKT BHYT-HIS
+            </p>
+        </field>
+    </record>
+
+    <record id="action_supply_mapping" model="ir.actions.act_window">
+        <field name="name">Mapping VTYT BHYT-HIS</field>
+        <field name="res_model">hic.supply.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo mapping VTYT BHYT-HIS
+            </p>
+        </field>
+    </record>
+
+    <record id="action_department_mapping" model="ir.actions.act_window">
+        <field name="name">Mapping Khoa phòng BHYT-HIS</field>
+        <field name="res_model">hic.department.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo mapping Khoa phòng BHYT-HIS
+            </p>
+        </field>
+    </record>
+</odoo>

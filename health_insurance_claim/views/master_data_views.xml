@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Medicine Master Data Views -->
+    <record id="view_medicine_tree" model="ir.ui.view">
+        <field name="name">hic.medicine.tree</field>
+        <field name="model">hic.medicine</field>
+        <field name="arch" type="xml">
+            <list sample="1" multi_edit="1">
+                <field name="bhyt_code"/>
+                <field name="bhyt_name"/>
+                <field name="unit" optional="show"/>
+                <field name="concentration" optional="show"/>
+                <field name="bhyt_price" optional="show"/>
+                <field name="insurance_rate" optional="hide"/>
+                <field name="mapping_count" string="Mappings"/>
+                <field name="effective_from" optional="hide"/>
+                <field name="effective_to" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medicine_form" model="ir.ui.view">
+        <field name="name">hic.medicine.form</field>
+        <field name="model">hic.medicine</field>
+        <field name="arch" type="xml">
+            <form>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mappings" type="object"
+                                class="oe_stat_button" icon="fa-link">
+                            <field string="Mappings" name="mapping_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active == True"/>
+
+                    <group>
+                        <group>
+                            <field name="bhyt_code" required="1"/>
+                            <field name="bhyt_name" required="1"/>
+                            <field name="unit"/>
+                            <field name="concentration"/>
+                            <field name="dosage_form"/>
+                        </group>
+                        <group>
+                            <field name="bhyt_price"/>
+                            <field name="insurance_rate"/>
+                            <field name="effective_from"/>
+                            <field name="effective_to"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="notes" placeholder="Ghi chú về thuốc..."/>
+                    </group>
+
+                    <notebook>
+                        <page string="HIS Mappings" name="his_mappings">
+                            <field name="his_mappings">
+                                <list editable="bottom">
+                                    <field name="his_data_id"
+                                           domain="[('data_type', '=', 'medicine')]"
+                                           context="{'default_data_type': 'medicine'}"/>
+                                    <field name="his_code" related="his_data_id.his_code" readonly="1"/>
+                                    <field name="his_name" related="his_data_id.his_name" readonly="1"/>
+                                    <field name="mapping_ratio"/>
+                                    <field name="notes"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+
+                            <div class="mt-3">
+                                <button name="action_auto_mapping" type="object"
+                                        string="Auto Mapping" class="btn-info"
+                                        groups="health_insurance_claim.group_hic_manager"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_medicine_search" model="ir.ui.view">
+        <field name="name">hic.medicine.search</field>
+        <field name="model">hic.medicine</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="bhyt_code"/>
+                <field name="bhyt_name"/>
+                <field name="unit"/>
+                <field name="concentration"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Đơn vị tính" name="group_unit" domain="[]" context="{'group_by': 'unit'}"/>
+                    <filter string="Dạng bào chế" name="group_dosage_form" domain="[]"
+                            context="{'group_by': 'dosage_form'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Medical Service Views -->
+    <record id="view_medical_service_tree" model="ir.ui.view">
+        <field name="name">hic.medical.service.tree</field>
+        <field name="model">hic.medical.service</field>
+        <field name="arch" type="xml">
+            <list sample="1" multi_edit="1">
+                <field name="bhyt_code"/>
+                <field name="bhyt_name"/>
+                <field name="bhyt_price" optional="show"/>
+                <field name="insurance_rate" optional="hide"/>
+                <field name="cost_group_code" optional="show"/>
+                <field name="mapping_count" string="Mappings"/>
+                <field name="effective_from" optional="hide"/>
+                <field name="effective_to" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medical_service_form" model="ir.ui.view">
+        <field name="name">hic.medical.service.form</field>
+        <field name="model">hic.medical.service</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mappings" type="object"
+                                class="oe_stat_button" icon="fa-link">
+                            <field string="Mappings" name="mapping_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active == True"/>
+
+                    <group>
+                        <group>
+                            <field name="bhyt_code" required="1"/>
+                            <field name="bhyt_name" required="1"/>
+                            <field name="cost_group_code"/>
+                        </group>
+                        <group>
+                            <field name="bhyt_price"/>
+                            <field name="insurance_rate"/>
+                            <field name="effective_from"/>
+                            <field name="effective_to"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="notes" placeholder="Ghi chú về dịch vụ..."/>
+                    </group>
+
+                    <notebook>
+                        <page string="HIS Mappings" name="his_mappings">
+                            <field name="his_mappings">
+                                <list editable="bottom">
+                                    <field name="his_data_id"
+                                           domain="[('data_type', '=', 'service')]"
+                                           context="{'default_data_type': 'service'}"/>
+                                    <field name="his_code" related="his_data_id.his_code" readonly="1"/>
+                                    <field name="his_name" related="his_data_id.his_name" readonly="1"/>
+                                    <field name="mapping_ratio"/>
+                                    <field name="notes"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Medical Supply Views -->
+    <record id="view_medical_supply_tree" model="ir.ui.view">
+        <field name="name">hic.medical.supply.tree</field>
+        <field name="model">hic.medical.supply</field>
+        <field name="arch" type="xml">
+            <list sample="1" multi_edit="1">
+                <field name="bhyt_code"/>
+                <field name="bhyt_name"/>
+                <field name="unit" optional="show"/>
+                <field name="bhyt_price" optional="show"/>
+                <field name="insurance_rate" optional="hide"/>
+                <field name="mapping_count" string="Mappings"/>
+                <field name="effective_from" optional="hide"/>
+                <field name="effective_to" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medical_supply_form" model="ir.ui.view">
+        <field name="name">hic.medical.supply.form</field>
+        <field name="model">hic.medical.supply</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mappings" type="object"
+                                class="oe_stat_button" icon="fa-link">
+                            <field string="Mappings" name="mapping_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active == True"/>
+
+                    <group>
+                        <group>
+                            <field name="bhyt_code" required="1"/>
+                            <field name="bhyt_name" required="1"/>
+                            <field name="unit"/>
+                        </group>
+                        <group>
+                            <field name="bhyt_price"/>
+                            <field name="insurance_rate"/>
+                            <field name="effective_from"/>
+                            <field name="effective_to"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="notes" placeholder="Ghi chú về vật tư..."/>
+                    </group>
+
+                    <notebook>
+                        <page string="HIS Mappings" name="his_mappings">
+                            <field name="his_mappings">
+                                <list editable="bottom">
+                                    <field name="his_data_id"
+                                           domain="[('data_type', '=', 'supply')]"
+                                           context="{'default_data_type': 'supply'}"/>
+                                    <field name="his_code" related="his_data_id.his_code" readonly="1"/>
+                                    <field name="his_name" related="his_data_id.his_name" readonly="1"/>
+                                    <field name="mapping_ratio"/>
+                                    <field name="notes"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Department Views -->
+    <record id="view_department_tree" model="ir.ui.view">
+        <field name="name">hic.department.tree</field>
+        <field name="model">hic.department</field>
+        <field name="arch" type="xml">
+            <list sample="1" multi_edit="1">
+                <field name="bhyt_code"/>
+                <field name="bhyt_name"/>
+                <field name="department_type" optional="show"/>
+                <field name="mapping_count" string="Mappings"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_department_form" model="ir.ui.view">
+        <field name="name">hic.department.form</field>
+        <field name="model">hic.department</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mappings" type="object"
+                                class="oe_stat_button" icon="fa-link">
+                            <field string="Mappings" name="mapping_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active == True"/>
+
+                    <group>
+                        <group>
+                            <field name="bhyt_code" required="1"/>
+                            <field name="bhyt_name" required="1"/>
+                            <field name="department_type"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="notes" placeholder="Ghi chú về khoa phòng..."/>
+                    </group>
+
+                    <notebook>
+                        <page string="HIS Mappings" name="his_mappings">
+                            <field name="his_mappings">
+                                <list editable="bottom">
+                                    <field name="his_data_id"
+                                           domain="[('data_type', '=', 'department')]"
+                                           context="{'default_data_type': 'department'}"/>
+                                    <field name="his_code" related="his_data_id.his_code" readonly="1"/>
+                                    <field name="his_name" related="his_data_id.his_name" readonly="1"/>
+                                    <field name="his_department_id"/>
+                                    <field name="notes"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions for Master Data -->
+    <record id="action_medicine" model="ir.actions.act_window">
+        <field name="name">Thuốc BHYT</field>
+        <field name="res_model">hic.medicine</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo danh mục thuốc BHYT đầu tiên
+            </p>
+        </field>
+    </record>
+
+    <record id="action_medical_service" model="ir.actions.act_window">
+        <field name="name">DVKT BHYT</field>
+        <field name="res_model">hic.medical.service</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo danh mục DVKT BHYT đầu tiên
+            </p>
+        </field>
+    </record>
+
+    <record id="action_medical_supply" model="ir.actions.act_window">
+        <field name="name">VTYT BHYT</field>
+        <field name="res_model">hic.medical.supply</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo danh mục VTYT BHYT đầu tiên
+            </p>
+        </field>
+    </record>
+
+    <record id="action_department" model="ir.actions.act_window">
+        <field name="name">Khoa phòng BHYT</field>
+        <field name="res_model">hic.department</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo danh mục khoa phòng BHYT đầu tiên
+            </p>
+        </field>
+    </record>
+</odoo>

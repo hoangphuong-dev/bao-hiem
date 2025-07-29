@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Patient Form View -->
+    <record id="view_patient_form_insurance" model="ir.ui.view">
+        <field name="name">his.patient.form.insurance</field>
+        <field name="model">his.patient</field>
+        <field name="inherit_id" ref="his_base.view_patient_form"/>
+        <field name="arch" type="xml">
+            <!-- Add BHYT Information Tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Bảo hiểm Y tế" name="insurance">
+                    <group>
+                        <group string="Thông tin thẻ BHYT">
+                            <field name="insurance_number" placeholder="DN 4 79 0126237490"/>
+                            <field name="insurance_benefit_code"/>
+                            <field name="insurance_object"/>
+                            <field name="insurance_region_code"/>
+                            <field name="registered_hospital"/>
+                            <field name="insurance_valid_from"/>
+                            <field name="insurance_valid_to"/>
+                            <field name="insurance_status" widget="badge"
+                                   decoration-success="insurance_status == 'valid'"
+                                   decoration-warning="insurance_status == 'expired'"
+                                   decoration-danger="insurance_status == 'not_registered'"/>
+                        </group>
+                        <group string="Quyền lợi đặc biệt">
+                            <field name="rare_disease_code"/>
+                            <field name="five_year_continuous_date"/>
+                            <field name="copay_exemption_start"/>
+                            <field name="copay_exemption_end"/>
+                            <field name="benefit_percentage" widget="percentage"/>
+                            <field name="can_use_bhyt" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <group string="Hồ sơ giám định BHYT" col="1">
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_insurance_claims" type="object"
+                                    class="oe_stat_button" icon="fa-file-medical">
+                                <field string="Hồ sơ" name="claim_count" widget="statinfo"/>
+                            </button>
+                            <button name="action_create_claim" type="object"
+                                    class="oe_stat_button btn-primary" icon="fa-plus"
+                                    invisible="not can_use_bhyt">
+                                <span>Tạo hồ sơ mới</span>
+                            </button>
+                            <button name="action_check_bhyt_online" type="object"
+                                    class="oe_stat_button btn-info" icon="fa-wifi"
+                                    invisible="not insurance_number">
+                                <span>Kiểm tra online</span>
+                            </button>
+                        </div>
+
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add smart buttons to Patient form -->
+    <record id="view_patient_form_buttons" model="ir.ui.view">
+        <field name="name">his.patient.form.buttons</field>
+        <field name="model">his.patient</field>
+        <field name="inherit_id" ref="his_base.view_patient_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_insurance_claims" type="object"
+                        class="oe_stat_button" icon="fa-shield-alt">
+                    <field string="BHYT" name="claim_count" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Patient List View with BHYT status -->
+    <record id="view_patient_tree_insurance" model="ir.ui.view">
+        <field name="name">his.patient.list.insurance</field>
+        <field name="model">his.patient</field>
+        <field name="inherit_id" ref="his_base.view_patient_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="insurance_number"/>
+                <field name="insurance_status" widget="badge" optional="show"/>
+                <field name="can_use_bhyt" widget="boolean_toggle" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Patient Search View -->
+    <record id="view_patient_search_insurance" model="ir.ui.view">
+        <field name="name">his.patient.search.insurance</field>
+        <field name="model">his.patient</field>
+        <field name="inherit_id" ref="his_base.view_patient_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="insurance_number"/>
+                <field name="insurance_object"/>
+            </xpath>
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="Có BHYT hợp lệ" name="valid_insurance"
+                        domain="[('insurance_status', '=', 'valid')]"/>
+                <filter string="BHYT hết hạn" name="expired_insurance"
+                        domain="[('insurance_status', '=', 'expired')]"/>
+                <filter string="Chưa có BHYT" name="no_insurance"
+                        domain="[('insurance_status', '=', 'not_registered')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Trạng thái BHYT" name="group_insurance_status"
+                            domain="[]" context="{'group_by': 'insurance_status'}"/>
+                    <filter string="Đối tượng BHYT" name="group_insurance_object"
+                            domain="[]" context="{'group_by': 'insurance_object'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

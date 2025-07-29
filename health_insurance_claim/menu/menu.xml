@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_hic_root" 
+              name="Bảo hiểm Y tế" 
+              sequence="40"/>
+
+    <!-- Claims Menu -->
+    <menuitem id="menu_hic_claims" 
+              name="Hồ sơ giám định" 
+              parent="menu_hic_root" 
+              sequence="10"/>
+    
+</odoo>
